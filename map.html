@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Clud Weather — Интерактивная карта мира</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,9 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+  <link rel="stylesheet" href="weather-bg.css">
+  <meta name="theme-color" content="#0a1628">
+  <script src="weather-bg.js"></script>
   <style>
     /* ============================================================
        CLUD WEATHER — ИНТЕРАКТИВНАЯ КАРТА
@@ -44,49 +47,6 @@
       background: var(--bg-dark);
       color: var(--text);
       overflow-x: hidden;
-    }
-
-    /* Фон неба и частицы */
-    .sky {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background: linear-gradient(180deg, #0a1628 0%, #162c46 45%, #23486f 75%, #356794 100%);
-      transition: background 1.2s ease;
-    }
-    .sky.rain   { background: linear-gradient(180deg, #0e131d 0%, #161e2e 40%, #1c2a3f 75%, #152233 100%); }
-    .sky.snow   { background: linear-gradient(180deg, #132238 0%, #1e3553 40%, #2b496e 75%, #466992 100%); }
-    .sky.sunny  { background: linear-gradient(180deg, #0d47a1 0%, #1976d2 35%, #42a5f5 70%, #ffb300 100%); }
-    .sky.cloudy { background: linear-gradient(180deg, #263238 0%, #37474f 40%, #546e7a 75%, #78909c 100%); }
-
-    .particles {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .raindrop {
-      position: absolute;
-      width: 2px;
-      background: linear-gradient(to bottom, transparent, rgba(174, 214, 255, 0.8));
-      border-radius: 0 0 4px 4px;
-      animation: fall linear infinite;
-    }
-    @keyframes fall {
-      from { transform: translateY(-100vh); opacity: 0.9; }
-      to   { transform: translateY(100vh) translateX(20px); opacity: 0.2; }
-    }
-    .snowflake {
-      position: absolute;
-      background: #fff;
-      border-radius: 50%;
-      box-shadow: 0 0 5px rgba(255,255,255,0.85);
-      animation: snow linear infinite;
-    }
-    @keyframes snow {
-      from { transform: translateY(-10vh) rotate(0deg); opacity: 0.95; }
-      to   { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
     }
 
     /* Навигация */
@@ -618,7 +578,70 @@
         gap: 0.6rem;
       }
     }
+
+    /* ===== Поиск с подсказками ===== */
+    .search-section { position: relative; z-index: 600; }
+    .search-input-wrap { position: relative; flex: 1; min-width: 0; }
+    .search-input-wrap .search-input { width: 100%; }
+    .suggest-box {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0; right: 0;
+      z-index: 2000;
+      background: rgba(10, 22, 40, 0.97);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(79, 195, 247, 0.4);
+      border-radius: 18px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+      overflow: hidden;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .suggest-box.show { display: block; }
+    .suggest-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.8rem 1.1rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      transition: background 0.2s;
+    }
+    .suggest-item:last-child { border-bottom: none; }
+    .suggest-item:hover, .suggest-item.active { background: rgba(79, 195, 247, 0.22); }
+    .suggest-item small { display: block; color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+    .suggest-empty { padding: 0.9rem 1.1rem; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Свой маркер (не зависит от картинок Leaflet) */
+    .pin-wrap { background: none !important; border: none !important; }
+    .pin {
+      width: 34px; height: 34px;
+      border-radius: 50% 50% 50% 0;
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      border: 3px solid #fff;
+      transform: rotate(-45deg);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      animation: pinDrop 0.5s cubic-bezier(.3,1.6,.5,1);
+    }
+    .pin::after {
+      content: '';
+      position: absolute;
+      width: 10px; height: 10px;
+      background: #fff;
+      border-radius: 50%;
+      top: 8px; left: 8px;
+    }
+    @keyframes pinDrop { from { transform: rotate(-45deg) translate(14px, -30px); opacity: 0; } to { transform: rotate(-45deg); opacity: 1; } }
+
+    @media (max-width: 768px) {
+      .search-inputs-row { flex-wrap: wrap; }
+      .search-input-wrap { flex: 1 1 100%; }
+    }
   </style>
+  <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
@@ -657,7 +680,10 @@
     <!-- Поисковик над картой -->
     <section class="search-section">
       <div class="search-inputs-row">
-        <input type="text" class="search-input" id="cityInput" placeholder="Введите город (например, Москва, Лондон, Сочи)..." autocomplete="off">
+        <div class="search-input-wrap">
+          <input type="text" class="search-input" id="cityInput" placeholder="Введите город (например, Ташкент, Москва, Лондон)..." autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggestBox">
+          <div class="suggest-box" id="suggestBox" role="listbox"></div>
+        </div>
         <button class="btn-search" id="searchBtn">
           <span>🔍</span> Найти
         </button>
@@ -795,94 +821,155 @@
       82: { desc: 'Шквальный ливень', icon: '⛈️', type: 'rain' },
       85: { desc: 'Снежный ливень', icon: '🌨️', type: 'snow' },
       86: { desc: 'Сильный снежный ливень', icon: '❄️', type: 'snow' },
-      95: { desc: 'Гроза', icon: '⛈️', type: 'rain' },
-      96: { desc: 'Гроза с градом', icon: '⛈️', type: 'rain' },
-      99: { desc: 'Шторм с грозой и градом', icon: '⛈️', type: 'rain' }
+      95: { desc: 'Гроза', icon: '⛈️', type: 'thunder' },
+      96: { desc: 'Гроза с градом', icon: '⛈️', type: 'thunder' },
+      99: { desc: 'Шторм с грозой и градом', icon: '⛈️', type: 'thunder' }
     };
 
-    // Анимации неба
+    // Фон погоды (общий модуль weather-bg.js)
     function setAtmosphere(type) {
-      sky.className = 'sky ' + (type || 'cloudy');
-      particles.innerHTML = '';
-
-      if (type === 'rain') {
-        for (let i = 0; i < 80; i++) {
-          const d = document.createElement('div');
-          d.className = 'raindrop';
-          d.style.left = Math.random() * 100 + '%';
-          d.style.height = (12 + Math.random() * 20) + 'px';
-          d.style.animationDuration = (0.5 + Math.random() * 0.7) + 's';
-          d.style.animationDelay = (Math.random() * 3) + 's';
-          particles.appendChild(d);
-        }
-      } else if (type === 'snow') {
-        for (let i = 0; i < 65; i++) {
-          const s = document.createElement('div');
-          s.className = 'snowflake';
-          const size = 3 + Math.random() * 5;
-          s.style.width = size + 'px';
-          s.style.height = size + 'px';
-          s.style.left = Math.random() * 100 + '%';
-          s.style.animationDuration = (5 + Math.random() * 7) + 's';
-          s.style.animationDelay = (Math.random() * 5) + 's';
-          particles.appendChild(s);
-        }
-      }
+      if (window.WeatherFX) WeatherFX.set(type);
     }
 
     // ============================================================
     // ИНИЦИАЛИЗАЦИЯ КАРТЫ LEAFLET
     // ============================================================
+    const mapWrapper = document.querySelector('.map-wrapper');
+    const suggestBox = document.getElementById('suggestBox');
+
     const map = L.map('map', {
-      center: [55.7558, 37.6173], // Москва по умолчанию
+      center: [55.7558, 37.6173],
       zoom: 5,
       zoomControl: true,
-      scrollWheelZoom: true
+      scrollWheelZoom: true,
+      worldCopyJump: true
     });
 
-    // Подложка карты CartoDB Dark Matter
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    // Основная подложка (тёмная). Если не загрузилась — переключаемся на обычную OSM
+    const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       subdomains: 'abcd',
       maxZoom: 19
     }).addTo(map);
 
-    let activeMarker = null;
+    let tileErrors = 0;
+    darkTiles.on('tileerror', () => {
+      tileErrors++;
+      if (tileErrors === 6 && map.hasLayer(darkTiles)) {
+        map.removeLayer(darkTiles);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(map);
+      }
+    });
 
-    // Реверс-геокодинг: получение читаемого названия места по координатам
+    // Карта должна знать свой реальный размер (иначе поиск «улетает» не туда / серые плитки)
+    function fixMapSize() { map.invalidateSize(); }
+    window.addEventListener('load', () => setTimeout(fixMapSize, 200));
+    window.addEventListener('resize', fixMapSize);
+    new ResizeObserver(fixMapSize).observe(document.getElementById('map'));
+
+    const pinIcon = L.divIcon({
+      className: 'pin-wrap',
+      html: '<div class="pin"></div>',
+      iconSize: [34, 34],
+      iconAnchor: [17, 34],
+      popupAnchor: [0, -34]
+    });
+
+    let activeMarker = null;
+    let requestToken = 0;
+
+    function esc(str) {
+      return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    }
+
+    async function fetchJSON(url, timeoutMs = 9000) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // ============================================================
+    // ГЕОКОДИНГ (поиск мест). Open-Meteo -> запасной вариант Nominatim
+    // ============================================================
+    function placeLabel(parts) {
+      return parts.filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(', ');
+    }
+
+    async function geocode(query, count = 6) {
+      const q = query.trim();
+      if (q.length < 2) return [];
+      let results = [];
+
+      for (const lang of ['ru', 'en']) {
+        try {
+          const data = await fetchJSON(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=${count}&language=${lang}&format=json`);
+          if (data.results && data.results.length) {
+            results = data.results.map(r => ({
+              name: r.name,
+              label: placeLabel([r.name, r.admin1, r.country]),
+              lat: r.latitude,
+              lon: r.longitude
+            }));
+            break;
+          }
+        } catch (e) { console.warn('Open-Meteo geocoding:', e); }
+      }
+
+      if (!results.length) {
+        try {
+          const data = await fetchJSON(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=${count}&accept-language=ru&q=${encodeURIComponent(q)}`);
+          results = (data || []).map(r => {
+            const short = (r.display_name || '').split(',')[0].trim();
+            return {
+              name: short,
+              label: (r.display_name || short).split(',').slice(0, 3).map(x => x.trim()).join(', '),
+              lat: parseFloat(r.lat),
+              lon: parseFloat(r.lon)
+            };
+          });
+        } catch (e) { console.warn('Nominatim:', e); }
+      }
+      return results.filter(r => isFinite(r.lat) && isFinite(r.lon));
+    }
+
     async function reverseGeocode(lat, lon) {
       try {
-        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`);
-        if (res.ok) {
-          const data = await res.json();
-          const city = data.city || data.locality || data.principalSubdivision;
-          const country = data.countryName;
-          if (city) {
-            return `${city}${country ? ', ' + country : ''}`;
-          }
-        }
-      } catch (e) {
-        console.warn('Reverse geocode fallback:', e);
-      }
+        const data = await fetchJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ru`, 6000);
+        const city = data.city || data.locality || data.principalSubdivision;
+        if (city) return placeLabel([city, data.countryName]);
+      } catch (e) { console.warn('bigdatacloud:', e); }
+      try {
+        const data = await fetchJSON(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=ru&lat=${lat}&lon=${lon}`, 6000);
+        const a = data.address || {};
+        const city = a.city || a.town || a.village || a.state || a.county;
+        if (city) return placeLabel([city, a.country]);
+      } catch (e) { console.warn('nominatim reverse:', e); }
       return `${lat.toFixed(3)}°, ${lon.toFixed(3)}°`;
     }
 
-    // Запрос погоды с Open-Meteo
+    // ============================================================
+    // ПОГОДА
+    // ============================================================
     async function fetchMapWeather(lat, lon) {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,surface_pressure&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Ошибка получения метеоданных');
-      return await res.json();
+      return await fetchJSON(url, 12000);
     }
 
-    // Отображение погоды на карточке и в popup карты
     function displayMapWeather(placeName, lat, lon, data) {
       const current = data.current;
-      const code = current.weather_code;
-      const info = WMO[code] || { desc: 'Облачно', icon: '⛅', type: 'cloudy' };
+      const info = WMO[current.weather_code] || { desc: 'Облачно', icon: '⛅', type: 'cloudy' };
 
       document.getElementById('cardCity').textContent = placeName;
-      document.getElementById('cardCoords').textContent = `Координаты: ${lat.toFixed(4)}° N, ${lon.toFixed(4)}° E`;
+      document.getElementById('cardCoords').textContent = `Координаты: ${lat.toFixed(4)}°, ${lon.toFixed(4)}°`;
       document.getElementById('cardIcon').textContent = info.icon;
       document.getElementById('cardTemp').textContent = Math.round(current.temperature_2m) + '°C';
       document.getElementById('cardDesc').textContent = info.desc;
@@ -891,136 +978,217 @@
       document.getElementById('cardFeels').textContent = Math.round(current.apparent_temperature) + '°C';
       document.getElementById('cardPressure').textContent = Math.round(current.surface_pressure) + ' гПа';
 
-      // Мини-прогноз на 3 дня
       const miniRow = document.getElementById('miniDaysRow');
       miniRow.innerHTML = '';
       const daily = data.daily;
       const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-
       for (let i = 1; i < daily.time.length; i++) {
-        const d = new Date(daily.time[i]);
-        const dCode = daily.weather_code[i];
-        const dInfo = WMO[dCode] || { desc: '—', icon: '🌡️' };
-        const max = Math.round(daily.temperature_2m_max[i]);
-        const min = Math.round(daily.temperature_2m_min[i]);
-
+        const d = new Date(daily.time[i] + 'T12:00:00');
+        const dInfo = WMO[daily.weather_code[i]] || { desc: '—', icon: '🌡️' };
         const box = document.createElement('div');
         box.className = 'mini-day-card';
         box.innerHTML = `
           <div class="mini-day-name">${days[d.getDay()]}, ${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}</div>
           <div class="mini-day-icon">${dInfo.icon}</div>
-          <div class="mini-day-temp">${max}° <span>/ ${min}°</span></div>
+          <div class="mini-day-temp">${Math.round(daily.temperature_2m_max[i])}° <span>/ ${Math.round(daily.temperature_2m_min[i])}°</span></div>
         `;
         miniRow.appendChild(box);
       }
 
       weatherCard.classList.add('show');
-      setAtmosphere(info.type);
+      setAtmosphere(info.type);   // снег / дождь / солнце на заднем фоне
 
-      // Обновляем маркер и открываем красивый Popup
-      if (activeMarker) {
-        map.removeLayer(activeMarker);
-      }
-
-      activeMarker = L.marker([lat, lon]).addTo(map);
+      if (activeMarker) map.removeLayer(activeMarker);
+      activeMarker = L.marker([lat, lon], { icon: pinIcon }).addTo(map);
       activeMarker.bindPopup(`
         <div class="popup-content">
-          <div class="popup-city">${placeName}</div>
+          <div class="popup-city">${esc(placeName)}</div>
           <div class="popup-temp">${Math.round(current.temperature_2m)}°C</div>
-          <div class="popup-desc">${info.icon} ${info.desc}</div>
+          <div class="popup-desc">${info.icon} ${esc(info.desc)}</div>
         </div>
       `).openPopup();
     }
 
-    // Обработка клика по карте
+    // Выбор точки (клик по карте, поиск, GPS)
     async function handleLocationSelect(lat, lon, knownName = null) {
+      const myToken = ++requestToken;
       loader.classList.add('show');
       errorBox.classList.remove('show');
 
+      // маркер ставим сразу, чтобы пользователь видел, что карта отреагировала
+      if (activeMarker) map.removeLayer(activeMarker);
+      activeMarker = L.marker([lat, lon], { icon: pinIcon }).addTo(map);
+
       try {
-        const placeName = knownName || await reverseGeocode(lat, lon);
-        const weather = await fetchMapWeather(lat, lon);
+        const [placeName, weather] = await Promise.all([
+          knownName ? Promise.resolve(knownName) : reverseGeocode(lat, lon),
+          fetchMapWeather(lat, lon)
+        ]);
+        if (myToken !== requestToken) return;   // пришёл более новый запрос
         displayMapWeather(placeName, lat, lon, weather);
       } catch (err) {
+        if (myToken !== requestToken) return;
         console.error(err);
-        errorBox.textContent = 'Не удалось загрузить погоду для этой локации. Попробуйте еще раз.';
+        errorBox.textContent = 'Не удалось загрузить погоду для этой локации. Попробуйте ещё раз.';
         errorBox.classList.add('show');
       } finally {
-        loader.classList.remove('show');
+        if (myToken === requestToken) loader.classList.remove('show');
       }
     }
 
-    // Слушатель клика на карте
+    // Клик по карте
     map.on('click', (e) => {
-      const { lat, lng } = e.latlng;
-      handleLocationSelect(lat, lng);
+      hideSuggestions();
+      handleLocationSelect(e.latlng.lat, e.latlng.lng);
     });
 
-    // Поиск по текстовому запросу
-    async function searchCity(query) {
-      if (!query || !query.trim()) return;
-      loader.classList.add('show');
-      errorBox.classList.remove('show');
+    // ============================================================
+    // ПОИСК: подсказки + переход карты к найденному месту
+    // ============================================================
+    let suggestItems = [];
+    let activeIndex = -1;
+    let suggestTimer = null;
+    let suggestSeq = 0;
 
-      try {
-        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=1&language=ru&format=json`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (!data.results || data.results.length === 0) {
-          throw new Error('Город не найден');
-        }
-        const g = data.results[0];
-        const placeName = g.name + (g.country ? ', ' + g.country : '');
+    function hideSuggestions() {
+      suggestBox.classList.remove('show');
+      cityInput.setAttribute('aria-expanded', 'false');
+      activeIndex = -1;
+    }
 
-        // Плавно летим к найденному городу на карте
-        map.flyTo([g.latitude, g.longitude], 10, { duration: 1.2 });
-        await handleLocationSelect(g.latitude, g.longitude, placeName);
-      } catch (err) {
-        console.error(err);
-        errorBox.textContent = 'Город не найден. Проверьте правильность написания.';
+    function renderSuggestions(items, emptyText) {
+      suggestBox.innerHTML = '';
+      if (!items.length) {
+        if (!emptyText) return hideSuggestions();
+        const div = document.createElement('div');
+        div.className = 'suggest-empty';
+        div.textContent = emptyText;
+        suggestBox.appendChild(div);
+      }
+      items.forEach((it, i) => {
+        const row = document.createElement('div');
+        row.className = 'suggest-item';
+        row.setAttribute('role', 'option');
+        const parts = it.label.split(', ');
+        row.innerHTML = `<span>📍</span><div>${esc(parts[0])}<small>${esc(parts.slice(1).join(', ') || `${it.lat.toFixed(2)}°, ${it.lon.toFixed(2)}°`)}</small></div>`;
+        row.addEventListener('mousedown', (e) => { e.preventDefault(); chooseItem(it); });
+        row.addEventListener('touchstart', () => { row._t = true; }, { passive: true });
+        row.addEventListener('touchend', (e) => { if (row._t) { e.preventDefault(); chooseItem(it); } });
+        suggestBox.appendChild(row);
+      });
+      suggestBox.classList.add('show');
+      cityInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function chooseItem(item) {
+      cityInput.value = item.name;
+      hideSuggestions();
+      goToPlace(item);
+    }
+
+    function goToPlace(item) {
+      mapWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      map.invalidateSize();
+      map.flyTo([item.lat, item.lon], 10, { duration: 1.4 });
+      handleLocationSelect(item.lat, item.lon, item.label);
+    }
+
+    async function runSearch(query) {
+      query = (query || '').trim();
+      if (query.length < 2) {
+        errorBox.textContent = 'Введите хотя бы 2 буквы названия города.';
         errorBox.classList.add('show');
-      } finally {
+        return;
+      }
+      hideSuggestions();
+      errorBox.classList.remove('show');
+      loader.classList.add('show');
+      try {
+        const results = await geocode(query, 1);
+        if (!results.length) throw new Error('not found');
+        goToPlace(results[0]);
+      } catch (err) {
         loader.classList.remove('show');
+        errorBox.textContent = 'Город не найден. Проверьте написание или кликните прямо по карте.';
+        errorBox.classList.add('show');
       }
     }
 
-    // Кнопка поиска
-    searchBtn.addEventListener('click', () => searchCity(cityInput.value));
-    cityInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') searchCity(cityInput.value);
+    cityInput.addEventListener('input', () => {
+      clearTimeout(suggestTimer);
+      const q = cityInput.value.trim();
+      if (q.length < 2) { hideSuggestions(); return; }
+      const seq = ++suggestSeq;
+      suggestTimer = setTimeout(async () => {
+        const items = await geocode(q, 6);
+        if (seq !== suggestSeq) return;
+        suggestItems = items;
+        activeIndex = -1;
+        renderSuggestions(items, 'Ничего не найдено — попробуйте другое название');
+      }, 280);
     });
+
+    cityInput.addEventListener('keydown', (e) => {
+      const rows = suggestBox.querySelectorAll('.suggest-item');
+      if (e.key === 'ArrowDown' && rows.length) {
+        e.preventDefault();
+        activeIndex = (activeIndex + 1) % rows.length;
+      } else if (e.key === 'ArrowUp' && rows.length) {
+        e.preventDefault();
+        activeIndex = (activeIndex - 1 + rows.length) % rows.length;
+      } else if (e.key === 'Escape') {
+        hideSuggestions();
+        return;
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIndex >= 0 && suggestItems[activeIndex]) chooseItem(suggestItems[activeIndex]);
+        else runSearch(cityInput.value);
+        return;
+      } else {
+        return;
+      }
+      rows.forEach((r, i) => r.classList.toggle('active', i === activeIndex));
+      if (rows[activeIndex]) rows[activeIndex].scrollIntoView({ block: 'nearest' });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-input-wrap')) hideSuggestions();
+    });
+
+    searchBtn.addEventListener('click', () => runSearch(cityInput.value));
 
     // Быстрые города
     document.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('click', () => {
         cityInput.value = chip.dataset.city;
-        searchCity(chip.dataset.city);
+        runSearch(chip.dataset.city);
       });
     });
 
-    // Определение текущей геолокации пользователя
+    // Моя геолокация
     gpsBtn.addEventListener('click', () => {
       if (!navigator.geolocation) {
-        alert('Геолокация не поддерживается вашим браузером');
+        errorBox.textContent = 'Геолокация не поддерживается вашим браузером.';
+        errorBox.classList.add('show');
         return;
       }
       loader.classList.add('show');
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          map.flyTo([lat, lon], 11, { duration: 1.2 });
+          const lat = pos.coords.latitude, lon = pos.coords.longitude;
+          map.flyTo([lat, lon], 11, { duration: 1.4 });
           handleLocationSelect(lat, lon);
         },
-        (err) => {
+        () => {
           loader.classList.remove('show');
-          alert('Не удалось получить координаты GPS. Вы можете найти свой город через поиск.');
+          errorBox.textContent = 'Не удалось получить координаты GPS. Найдите свой город через поиск.';
+          errorBox.classList.add('show');
         },
         { timeout: 10000 }
       );
     });
 
-    // Стартовая загрузка: Москва на карте
+    // Стартовая загрузка
     handleLocationSelect(55.7558, 37.6173, 'Москва, Россия');
   </script>
 </body>

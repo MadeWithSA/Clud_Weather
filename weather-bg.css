@@ -1,0 +1,175 @@
+/* ============================================================
+   CLUD WEATHER — ОБЩИЙ ПОГОДНЫЙ ФОН (weather-bg.css + weather-bg.js)
+   Снег / дождь / гроза / солнце / облака на заднем плане.
+   Подключается на всех страницах.
+   ============================================================ */
+
+/* ---------- Небо ---------- */
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg, #0a1628 0%, #162c46 45%, #23486f 75%, #356794 100%);
+  transition: background 1.4s ease;
+}
+.sky.sunny   { background: linear-gradient(180deg, #0d47a1 0%, #1976d2 35%, #42a5f5 70%, #ffb300 100%); }
+.sky.cloudy  { background: linear-gradient(180deg, #263238 0%, #37474f 40%, #546e7a 75%, #78909c 100%); }
+.sky.rain    { background: linear-gradient(180deg, #0b1018 0%, #141c2b 40%, #1b2a3f 75%, #132030 100%); }
+.sky.snow    { background: linear-gradient(180deg, #132238 0%, #24405f 40%, #3d6089 75%, #6f93b8 100%); }
+.sky.thunder { background: linear-gradient(180deg, #07090e 0%, #12131f 40%, #221b36 70%, #0b1019 100%); }
+
+/* ---------- Слой эффектов ---------- */
+#wfx {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+#wfx .wfx-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+#wfx .wfx-layer.on { opacity: 1; }
+
+/* ---------- Солнце ---------- */
+.wfx-sun {
+  position: absolute;
+  top: 9%;
+  right: 9%;
+  width: 190px;
+  height: 190px;
+}
+.wfx-sun-glow {
+  position: absolute;
+  inset: -140%;
+  background: radial-gradient(circle, rgba(255, 224, 130, 0.50) 0%, rgba(255, 193, 7, 0.20) 28%, transparent 62%);
+  animation: wfxGlow 6s ease-in-out infinite;
+}
+.wfx-sun-rays {
+  position: absolute;
+  inset: -60%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 240, 150, 0.55) 0deg 3deg, transparent 3deg 14deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 14%, #000 22%, transparent 60%);
+          mask-image: radial-gradient(circle, transparent 14%, #000 22%, transparent 60%);
+  animation: wfxSpin 70s linear infinite;
+}
+.wfx-sun-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 38%, #ffffff 0%, #fff59d 30%, #ffca28 62%, #ff9800 100%);
+  box-shadow: 0 0 70px 30px rgba(255, 193, 7, 0.55), 0 0 160px 80px rgba(255, 152, 0, 0.25);
+  animation: wfxPulse 5s ease-in-out infinite;
+}
+.wfx-sunwash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 88% 8%, rgba(255, 214, 102, 0.40) 0%, transparent 55%);
+}
+@keyframes wfxSpin  { to { transform: rotate(360deg); } }
+@keyframes wfxPulse { 0%,100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.06); filter: brightness(1.15); } }
+@keyframes wfxGlow  { 0%,100% { opacity: .8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+
+/* ---------- Облака ---------- */
+.wfx-cloud {
+  position: absolute;
+  left: 0;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.55);
+  filter: blur(3px);
+  animation: wfxCloud linear infinite;
+  transition: background 1s ease, opacity 1s ease;
+}
+.wfx-cloud::before, .wfx-cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+.wfx-cloud::before { width: 55%; height: 130%; top: -55%; left: 14%; }
+.wfx-cloud::after  { width: 45%; height: 105%; top: -38%; right: 14%; }
+@keyframes wfxCloud { from { transform: translateX(-40vw); } to { transform: translateX(140vw); } }
+
+/* Настроение облаков по типу погоды */
+#wfx[data-type="sunny"]   .wfx-cloud { background: rgba(255,255,255,.55); }
+#wfx[data-type="sunny"]   .wfx-cloud:nth-child(n+4) { display: none; }
+#wfx[data-type="cloudy"]  .wfx-cloud { background: rgba(225,232,240,.45); }
+#wfx[data-type="snow"]    .wfx-cloud { background: rgba(235,242,250,.40); }
+#wfx[data-type="snow"]    .wfx-cloud:nth-child(n+7) { display: none; }
+#wfx[data-type="rain"]    .wfx-cloud { background: rgba(70,85,105,.75); }
+#wfx[data-type="thunder"] .wfx-cloud { background: rgba(30,32,48,.85); }
+
+/* ---------- Дождь ---------- */
+.wfx-rain { inset: -25% !important; transform: rotate(12deg); }
+.wfx-drop {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(to bottom, transparent, rgba(190, 225, 255, 0.85));
+  animation: wfxFall linear infinite;
+}
+@keyframes wfxFall {
+  from { transform: translate3d(0, -20vh, 0); }
+  to   { transform: translate3d(0, 130vh, 0); }
+}
+.wfx-mist {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 28%;
+  background: linear-gradient(to top, rgba(170, 200, 230, 0.20), transparent);
+}
+
+/* ---------- Снег ---------- */
+.wfx-flake {
+  position: absolute;
+  top: 0;
+  animation: wfxSnowFall linear infinite;
+}
+.wfx-flake i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+  animation: wfxSway ease-in-out infinite alternate;
+}
+@keyframes wfxSnowFall {
+  from { transform: translate3d(0, -10vh, 0); }
+  to   { transform: translate3d(0, 112vh, 0); }
+}
+@keyframes wfxSway {
+  from { transform: translateX(-22px); }
+  to   { transform: translateX(22px); }
+}
+.wfx-snowground {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 18%;
+  background: linear-gradient(to top, rgba(255,255,255,0.22), transparent);
+}
+
+/* ---------- Молния ---------- */
+.wfx-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(220, 230, 255, 0.55);
+  opacity: 0;
+}
+.wfx-flash.go { animation: wfxFlash 0.7s ease-out; }
+@keyframes wfxFlash {
+  0% { opacity: 0; } 8% { opacity: .95; } 18% { opacity: .1; }
+  30% { opacity: .75; } 55% { opacity: .05; } 100% { opacity: 0; }
+}
+
+/* ---------- Мобильные / reduced motion ---------- */
+@media (max-width: 768px) {
+  .wfx-sun { width: 120px; height: 120px; top: 11%; right: 6%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wfx-drop, .wfx-flake, .wfx-flake i, .wfx-cloud, .wfx-sun-rays { animation-duration: 40s !important; }
+}

@@ -2,11 +2,14 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Clud Weather — Главная | Умный погодный сервис</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="weather-bg.css">
+  <meta name="theme-color" content="#0a1628">
+  <script src="weather-bg.js"></script>
   <style>
     /* ============================================================
        CLUD WEATHER — ГЛАВНАЯ СТРАНИЦА (ОЗНАКОМЛЕНИЕ И ФУНКЦИИ)
@@ -46,175 +49,6 @@
       min-height: 100vh;
       overflow-x: hidden;
       position: relative;
-    }
-
-    /* ============================================================
-       АНИМИРОВАННЫЙ ФОН И ЧАСТИЦЫ
-       ============================================================ */
-    .sky {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background: linear-gradient(180deg, #0a1628 0%, #162c46 45%, #23486f 75%, #356794 100%);
-      transition: background 1.2s ease;
-    }
-
-    .sky.rain {
-      background: linear-gradient(180deg, #0e131d 0%, #161e2e 40%, #1c2a3f 75%, #152233 100%);
-    }
-
-    .sky.snow {
-      background: linear-gradient(180deg, #132238 0%, #1e3553 40%, #2b496e 75%, #466992 100%);
-    }
-
-    .sky.sunny {
-      background: linear-gradient(180deg, #0d47a1 0%, #1976d2 35%, #42a5f5 70%, #ffb300 100%);
-    }
-
-    .sky.cloudy {
-      background: linear-gradient(180deg, #263238 0%, #37474f 40%, #546e7a 75%, #78909c 100%);
-    }
-
-    .sky.thunder {
-      background: linear-gradient(180deg, #090b10 0%, #151624 40%, #241e38 70%, #0d121c 100%);
-    }
-
-    /* Контейнеры частиц */
-    .rain-container, .snow-container, .clouds-container {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .rain-container, .snow-container {
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    }
-
-    .rain-container.active, .snow-container.active {
-      opacity: 1;
-    }
-
-    .raindrop {
-      position: absolute;
-      width: 2px;
-      background: linear-gradient(to bottom, transparent, rgba(174, 214, 255, 0.8));
-      border-radius: 0 0 4px 4px;
-      animation: fall linear infinite;
-    }
-
-    @keyframes fall {
-      0% { transform: translateY(-100vh) translateX(0); opacity: 0.9; }
-      100% { transform: translateY(100vh) translateX(25px); opacity: 0.2; }
-    }
-
-    .snowflake {
-      position: absolute;
-      background: #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 6px rgba(255, 255, 255, 0.85);
-      animation: snowfall linear infinite;
-    }
-
-    @keyframes snowfall {
-      0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0.95; }
-      50% { transform: translateY(50vh) translateX(35px) rotate(180deg); opacity: 0.7; }
-      100% { transform: translateY(105vh) translateX(-20px) rotate(360deg); opacity: 0.2; }
-    }
-
-    /* Солнце */
-    .sun-container {
-      position: fixed;
-      top: 10%;
-      right: 10%;
-      width: 160px;
-      height: 160px;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
-
-    .sun-container.active {
-      opacity: 1;
-    }
-
-    .sun-core {
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle, #fff9c4 0%, #ffeb3b 35%, #ff9800 70%, transparent 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 60px 25px rgba(255, 193, 7, 0.45);
-      animation: sunPulse 4s ease-in-out infinite;
-    }
-
-    @keyframes sunPulse {
-      0%, 100% { transform: scale(1); filter: brightness(1); }
-      50% { transform: scale(1.08); filter: brightness(1.2); }
-    }
-
-    .sun-ray {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 5px;
-      height: 80px;
-      background: linear-gradient(to top, transparent, rgba(255, 235, 59, 0.65));
-      transform-origin: bottom center;
-      border-radius: 4px;
-    }
-
-    /* Облака */
-    .cloud {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.13);
-      border-radius: 100px;
-      filter: blur(2px);
-      animation: cloudMove linear infinite;
-    }
-    .cloud::before, .cloud::after {
-      content: '';
-      position: absolute;
-      background: inherit;
-      border-radius: 50%;
-    }
-    .cloud::before {
-      width: 60%;
-      height: 110%;
-      top: -50%;
-      left: 15%;
-    }
-    .cloud::after {
-      width: 50%;
-      height: 90%;
-      top: -35%;
-      right: 15%;
-    }
-    @keyframes cloudMove {
-      0% { transform: translateX(-35vw); }
-      100% { transform: translateX(135vw); }
-    }
-
-    /* Вспышка молнии */
-    .lightning-flash {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.35);
-      z-index: 2;
-      pointer-events: none;
-      opacity: 0;
-    }
-    .lightning-flash.flash {
-      animation: thunderFlash 0.6s ease;
-    }
-    @keyframes thunderFlash {
-      0% { opacity: 0; }
-      10% { opacity: 0.9; }
-      20% { opacity: 0.1; }
-      30% { opacity: 0.8; }
-      100% { opacity: 0; }
     }
 
     /* ============================================================
@@ -847,20 +681,13 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
   <!-- Анимированное небо -->
   <div class="sky" id="sky"></div>
-  <div class="lightning-flash" id="lightningFlash"></div>
 
-  <!-- Частицы погоды -->
-  <div class="rain-container" id="rainContainer"></div>
-  <div class="snow-container" id="snowContainer"></div>
-  <div class="sun-container" id="sunContainer">
-    <div class="sun-core"></div>
-  </div>
-  <div class="clouds-container" id="cloudsContainer"></div>
 
   <!-- Навигация -->
   <nav class="navbar" id="navbar">
@@ -1065,11 +892,6 @@
   <script>
     // DOM Элементы
     const sky = document.getElementById('sky');
-    const rainContainer = document.getElementById('rainContainer');
-    const snowContainer = document.getElementById('snowContainer');
-    const sunContainer = document.getElementById('sunContainer');
-    const cloudsContainer = document.getElementById('cloudsContainer');
-    const lightningFlash = document.getElementById('lightningFlash');
     const navbar = document.getElementById('navbar');
     const menuToggle = document.getElementById('menuToggle');
     const navLinks = document.getElementById('navLinks');
@@ -1078,102 +900,10 @@
     const searchBtn = document.getElementById('searchBtn');
     const miniWeatherCard = document.getElementById('miniWeatherCard');
 
-    let particlesCreated = false;
-    let thunderInterval = null;
 
-    // Генерация капель дождя
-    function createRain(count = 100) {
-      rainContainer.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const drop = document.createElement('div');
-        drop.className = 'raindrop';
-        drop.style.left = Math.random() * 100 + '%';
-        drop.style.height = (15 + Math.random() * 25) + 'px';
-        drop.style.animationDuration = (0.5 + Math.random() * 0.7) + 's';
-        drop.style.animationDelay = (Math.random() * 3) + 's';
-        drop.style.opacity = (0.3 + Math.random() * 0.6);
-        rainContainer.appendChild(drop);
-      }
-    }
-
-    // Генерация снежинок
-    function createSnow(count = 70) {
-      snowContainer.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const flake = document.createElement('div');
-        flake.className = 'snowflake';
-        const size = 3 + Math.random() * 6;
-        flake.style.width = size + 'px';
-        flake.style.height = size + 'px';
-        flake.style.left = Math.random() * 100 + '%';
-        flake.style.animationDuration = (5 + Math.random() * 7) + 's';
-        flake.style.animationDelay = (Math.random() * 6) + 's';
-        snowContainer.appendChild(flake);
-      }
-    }
-
-    // Генерация лучей солнца
-    function createSunRays() {
-      const existing = sunContainer.querySelectorAll('.sun-ray');
-      existing.forEach(r => r.remove());
-      for (let i = 0; i < 12; i++) {
-        const ray = document.createElement('div');
-        ray.className = 'sun-ray';
-        ray.style.transform = `rotate(${i * 30}deg) translateY(-85px)`;
-        ray.style.animation = `sunPulse 3s ease-in-out ${i * 0.15}s infinite`;
-        sunContainer.appendChild(ray);
-      }
-    }
-
-    // Генерация плывущих облаков
-    function createClouds(count = 6) {
-      cloudsContainer.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const cloud = document.createElement('div');
-        cloud.className = 'cloud';
-        const width = 140 + Math.random() * 180;
-        cloud.style.width = width + 'px';
-        cloud.style.height = (width * 0.38) + 'px';
-        cloud.style.top = (4 + Math.random() * 35) + '%';
-        cloud.style.animationDuration = (35 + Math.random() * 45) + 's';
-        cloud.style.animationDelay = '-' + (Math.random() * 25) + 's';
-        cloud.style.opacity = (0.12 + Math.random() * 0.18);
-        cloudsContainer.appendChild(cloud);
-      }
-    }
-
-    // Переключение визуальной темы неба
+    // Фон погоды (общий модуль weather-bg.js)
     function setAtmosphere(type) {
-      sky.className = 'sky ' + type;
-      rainContainer.classList.remove('active');
-      snowContainer.classList.remove('active');
-      sunContainer.classList.remove('active');
-      clearInterval(thunderInterval);
-
-      if (!particlesCreated) {
-        createRain();
-        createSnow();
-        createClouds();
-        particlesCreated = true;
-      }
-
-      if (type === 'rain') {
-        rainContainer.classList.add('active');
-      } else if (type === 'snow') {
-        snowContainer.classList.add('active');
-      } else if (type === 'sunny') {
-        createSunRays();
-        sunContainer.classList.add('active');
-      } else if (type === 'thunder') {
-        rainContainer.classList.add('active');
-        // Случайные вспышки молнии
-        thunderInterval = setInterval(() => {
-          if (Math.random() > 0.45) {
-            lightningFlash.classList.add('flash');
-            setTimeout(() => lightningFlash.classList.remove('flash'), 650);
-          }
-        }, 3200);
-      }
+      if (window.WeatherFX) WeatherFX.set(type);
     }
 
     // Интерактивные кнопки симулятора
@@ -1240,18 +970,8 @@
         miniWeatherCard.classList.add('show');
         miniWeatherCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-        // Переключаем эффект под найденный город
-        if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(c.weather_code)) {
-          setAtmosphere('rain');
-        } else if ([71, 73, 75, 77, 85, 86].includes(c.weather_code)) {
-          setAtmosphere('snow');
-        } else if ([95, 96, 99].includes(c.weather_code)) {
-          setAtmosphere('thunder');
-        } else if ([0, 1].includes(c.weather_code)) {
-          setAtmosphere('sunny');
-        } else {
-          setAtmosphere('cloudy');
-        }
+        // Переключаем фон под найденный город
+        WeatherFX.fromCode(c.weather_code);
       } catch (e) {
         console.error(e);
       }

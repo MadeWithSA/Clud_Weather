@@ -2,11 +2,14 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Clud Weather — Прогноз на неделю</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="weather-bg.css">
+  <meta name="theme-color" content="#0a1628">
+  <script src="weather-bg.js"></script>
   <style>
     /* ============================================================
        CLUD WEATHER — ПРОГНОЗ НА НЕДЕЛЮ (7 ДНЕЙ)
@@ -40,49 +43,6 @@
       background: var(--bg-dark);
       color: var(--text);
       overflow-x: hidden;
-    }
-
-    /* Фон неба и частицы */
-    .sky {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background: linear-gradient(180deg, #0a1628 0%, #162c46 45%, #23486f 75%, #356794 100%);
-      transition: background 1.2s ease;
-    }
-    .sky.rain   { background: linear-gradient(180deg, #0e131d 0%, #161e2e 40%, #1c2a3f 75%, #152233 100%); }
-    .sky.snow   { background: linear-gradient(180deg, #132238 0%, #1e3553 40%, #2b496e 75%, #466992 100%); }
-    .sky.sunny  { background: linear-gradient(180deg, #0d47a1 0%, #1976d2 35%, #42a5f5 70%, #ffb300 100%); }
-    .sky.cloudy { background: linear-gradient(180deg, #263238 0%, #37474f 40%, #546e7a 75%, #78909c 100%); }
-
-    .particles {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .raindrop {
-      position: absolute;
-      width: 2px;
-      background: linear-gradient(to bottom, transparent, rgba(174, 214, 255, 0.8));
-      border-radius: 0 0 4px 4px;
-      animation: fall linear infinite;
-    }
-    @keyframes fall {
-      from { transform: translateY(-100vh); opacity: 0.9; }
-      to   { transform: translateY(100vh) translateX(20px); opacity: 0.2; }
-    }
-    .snowflake {
-      position: absolute;
-      background: #fff;
-      border-radius: 50%;
-      box-shadow: 0 0 5px rgba(255,255,255,0.85);
-      animation: snow linear infinite;
-    }
-    @keyframes snow {
-      from { transform: translateY(-10vh) rotate(0deg); opacity: 0.95; }
-      to   { transform: translateY(110vh) rotate(360deg); opacity: 0.2; }
     }
 
     /* Навигация */
@@ -589,6 +549,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
@@ -724,40 +685,16 @@
       82: { desc: 'Шквальный ливень', icon: '⛈️', type: 'rain' },
       85: { desc: 'Снежный ливень', icon: '🌨️', type: 'snow' },
       86: { desc: 'Сильный снежный ливень', icon: '❄️', type: 'snow' },
-      95: { desc: 'Гроза', icon: '⛈️', type: 'rain' },
-      96: { desc: 'Гроза с градом', icon: '⛈️', type: 'rain' }
+      95: { desc: 'Гроза', icon: '⛈️', type: 'thunder' },
+      96: { desc: 'Гроза с градом', icon: '⛈️', type: 'thunder' },
+      99: { desc: 'Шторм с грозой и градом', icon: '⛈️', type: 'thunder' }
     };
 
     const DAYS_RU = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
     const DAYS_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
     function setAtmosphere(type) {
-      sky.className = 'sky ' + (type || 'cloudy');
-      particles.innerHTML = '';
-
-      if (type === 'rain') {
-        for (let i = 0; i < 85; i++) {
-          const d = document.createElement('div');
-          d.className = 'raindrop';
-          d.style.left = Math.random() * 100 + '%';
-          d.style.height = (12 + Math.random() * 20) + 'px';
-          d.style.animationDuration = (0.5 + Math.random() * 0.7) + 's';
-          d.style.animationDelay = (Math.random() * 3) + 's';
-          particles.appendChild(d);
-        }
-      } else if (type === 'snow') {
-        for (let i = 0; i < 65; i++) {
-          const s = document.createElement('div');
-          s.className = 'snowflake';
-          const size = 3 + Math.random() * 5;
-          s.style.width = size + 'px';
-          s.style.height = size + 'px';
-          s.style.left = Math.random() * 100 + '%';
-          s.style.animationDuration = (5 + Math.random() * 7) + 's';
-          s.style.animationDelay = (Math.random() * 5) + 's';
-          particles.appendChild(s);
-        }
-      }
+      if (window.WeatherFX) WeatherFX.set(type);
     }
 
     // Автоопределение города пользователя по IP

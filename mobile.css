@@ -1,0 +1,134 @@
+/* ============================================================
+   CLUD WEATHER — МОБИЛЬНАЯ ВЕРСИЯ (mobile.css)
+   Нижняя панель вкладок как в приложении, крупные кнопки,
+   поддержка «чёлки» iPhone, плавные карточки.
+   ============================================================ */
+html { -webkit-text-size-adjust: 100%; }
+
+/* Подписи вкладок: на ПК полный текст, на телефоне короткий */
+.nav-links a .ni { margin-right: 0.4rem; }
+.nav-links a .ns { display: none; }
+
+@media (max-width: 768px) {
+
+  /* ---------- Верхняя панель: только логотип ---------- */
+  body .navbar,
+  body .navbar.scrolled {
+    padding: calc(0.55rem + env(safe-area-inset-top, 0px)) 1rem 0.55rem;
+    justify-content: center;
+    /* backdrop-filter ломает position:fixed у вложенного меню — отключаем */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(10, 22, 40, 0.88);
+  }
+  body .navbar .logo { font-size: 1.3rem; }
+  body .navbar .logo-icon { font-size: 1.4rem; }
+  body .menu-toggle { display: none !important; }
+
+  /* ---------- Нижняя панель вкладок ---------- */
+  body .navbar .nav-links {
+    position: fixed;
+    top: auto; left: 0; right: 0; bottom: 0;
+    transform: none !important;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 0.2rem;
+    padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(10, 22, 40, 0.94);
+    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(22px);
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    border-bottom: none;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.45);
+    z-index: 1100;
+  }
+  body .navbar .nav-links li { flex: 1; min-width: 0; }
+  body .navbar .nav-links a {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    padding: 0.45rem 0.1rem;
+    border-radius: 14px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-align: center;
+    background: transparent;
+    border: 1px solid transparent;
+    box-shadow: none;
+    white-space: nowrap;
+  }
+  body .navbar .nav-links a .ni { font-size: 1.4rem; line-height: 1.1; margin: 0; }
+  body .navbar .nav-links a .nl { display: none; }
+  body .navbar .nav-links a .ns { display: inline; }
+  body .navbar .nav-links a:active { transform: scale(0.94); }
+  body .navbar .nav-links a.active {
+    background: rgba(79, 195, 247, 0.20);
+    border-color: rgba(79, 195, 247, 0.4);
+    color: #fff;
+  }
+
+  /* место под нижнюю панель */
+  body { padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+
+  /* ---------- Контент ---------- */
+  body .main-container { padding-top: calc(70px + env(safe-area-inset-top, 0px)); padding-left: 0.9rem; padding-right: 0.9rem; }
+  body .main-content   { padding-top: calc(62px + env(safe-area-inset-top, 0px)); }
+  .page-title { font-size: 1.9rem !important; }
+  .page-desc  { font-size: 0.92rem !important; }
+
+  /* крупные поля (16px — iOS не будет приближать экран) и кнопки */
+  input, select, textarea, .search-input { font-size: 16px !important; }
+  .search-input, .btn-search, .btn-gps, .search-btn, .btn-action, .btn {
+    min-height: 50px;
+  }
+
+  /* быстрые города — горизонтальная прокрутка пальцем */
+  .quick-chips-wrapper, .quick-chips {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-left: -0.2rem; margin-right: -0.2rem;
+    padding: 0.2rem 0.2rem 0.4rem;
+  }
+  .quick-chips-wrapper::-webkit-scrollbar, .quick-chips::-webkit-scrollbar { display: none; }
+  .chip, .quick-chip { flex: 0 0 auto; white-space: nowrap; padding: 0.6rem 1.05rem; }
+  .quick-chips-label { flex: 0 0 auto; }
+
+  /* карточки */
+  .weather-card, .search-section, .simulator-box, .mini-weather-card {
+    border-radius: 20px;
+    padding-left: 1.1rem; padding-right: 1.1rem;
+  }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
+  .mini-days-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+
+  /* карта: высота под экран телефона */
+  body #map { height: 56vh; height: 56svh; min-height: 300px; max-height: 520px; }
+  .leaflet-touch .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
+  .leaflet-top.leaflet-left { top: 44px; }
+  .leaflet-popup-content-wrapper { max-width: 78vw; }
+
+  /* подсказки поиска — крупнее под палец */
+  .suggest-item { padding: 0.95rem 1.1rem; }
+
+  /* солнце не перекрывает заголовок */
+  .wfx-sun { width: 110px; height: 110px; top: 13%; right: 5%; }
+
+  .footer { padding-bottom: 1.5rem; font-size: 0.8rem; }
+}
+
+@media (max-width: 380px) {
+  body .navbar .nav-links a { font-size: 0.62rem; }
+  .mini-days-row { grid-template-columns: 1fr 1fr; }
+  .temp-value { font-size: 3.8rem !important; }
+}
+
+/* ландшафт на телефоне: панель компактнее */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 480px) {
+  body .navbar .nav-links a { flex-direction: row; font-size: 0.75rem; padding: 0.3rem 0.2rem; }
+  body .navbar .nav-links a .ni { font-size: 1.1rem; }
+  body #map { height: 70vh; }
+}
